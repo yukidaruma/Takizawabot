@@ -2,7 +2,7 @@ import { readFile, writeFile } from "fs/promises";
 import { TwitterApi } from "twitter-api-v2";
 import { schedule } from "node-cron";
 
-import { BIO_FILE } from "./constants";
+import { BIO_FILE, TARGET_USER_ID } from "./constants";
 
 const client = new TwitterApi({
   accessToken: process.env.ACCESS_TOKEN,
@@ -57,7 +57,7 @@ const bot = async () => {
 };
 
 const fetchBio = async () => {
-  const user = await client.v2.userByUsername("h_Takizawa329", {
+  const user = await client.v2.user(TARGET_USER_ID, {
     "user.fields": ["description"],
   });
   return user.data.description!;
