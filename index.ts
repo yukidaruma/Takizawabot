@@ -7,8 +7,8 @@ import { BIO_FILE, TARGET_USER_ID } from "./constants";
 const client = new TwitterApi({
   accessToken: process.env.ACCESS_TOKEN,
   accessSecret: process.env.ACCESS_SECRET,
-  appKey: process.env.APP_KEY!,
-  appSecret: process.env.APP_SECRET!,
+  appKey: process.env.APP_KEY,
+  appSecret: process.env.APP_SECRET,
 });
 
 const log = (...args: any[]) => {
