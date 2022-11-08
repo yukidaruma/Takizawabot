@@ -39,11 +39,8 @@ const bot = async () => {
     if (lastBio !== null) {
       log("Sending a Tweet...");
 
-      await client.v2.tweet(`滝沢秀明さんのプロフィールが変更されました:
-
-旧: ${lastBio}
-
-新: ${bio}`);
+      const truncated = bio.length > 140 ? bio.substring(0, 137) + "..." : bio;
+      await client.v2.tweet(truncated);
 
       log("Successfully sent a Tweet.");
     }
