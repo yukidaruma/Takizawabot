@@ -11,5 +11,8 @@
   "license": "ISC",
   "devDependencies": {
     "prettier": "^2.7.1"
+  },
+  "dependencies": {
+    "twitter-api-v2": "^1.12.9"
   }
 }
