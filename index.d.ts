@@ -6,6 +6,7 @@ declare module "process" {
         readonly ACCESS_SECRET: string;
         readonly APP_KEY: string;
         readonly APP_SECRET: string;
+        readonly NO_TWEET?: string;
       }
     }
   }
