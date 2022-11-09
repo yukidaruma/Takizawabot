@@ -38,6 +38,19 @@ const main = async () => {
   schedule("* * * * *", bot);
 };
 
+const sendTweet = async (tweet: string) => {
+  log(`Sending a Tweet: ${JSON.stringify(tweet)}`);
+
+  if (process.env.NO_TWEET) {
+    log("Skipped tweeting because process.env.NO_TWEET is set.");
+    return false;
+  } else {
+    await client.v2.tweet(tweet);
+    log("Successfully sent a Tweet.");
+    return true;
+  }
+};
+
 const bot = async () => {
   try {
     log("Fetching bio...");
@@ -60,15 +73,7 @@ const bot = async () => {
           ? bio.substring(0, maxTweetLen - ellipsis.length) + ellipsis
           : bio;
       tweet = format(new Date(), TWEET_DATE_FORMAT) + "\n" + tweet;
-
-      log(`Sending a Tweet: ${JSON.stringify(tweet)}`);
-
-      if (process.env.NO_TWEET) {
-        log("Skipped tweeting because process.env.NO_TWEET is set.");
-      } else {
-        await client.v2.tweet(tweet);
-        log("Successfully sent a Tweet.");
-      }
+      await sendTweet(tweet);
     }
 
     lastData.bio = bio;
