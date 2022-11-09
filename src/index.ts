@@ -2,7 +2,7 @@ import { readFile, writeFile } from "fs/promises";
 import { TwitterApi } from "twitter-api-v2";
 import { schedule } from "node-cron";
 
-import { DATA_FILE, TARGET_USER_ID } from "./constants";
+import { DATA_FILE, FETCH_INTERVAL, TARGET_USER_ID } from "./constants";
 import {
   composeTweet,
   DataType,
@@ -31,8 +31,10 @@ const main = async () => {
     log(e);
   }
 
-  bot();
-  schedule("* * * * *", bot);
+  while (true) {
+    await bot();
+    await new Promise((resolve) => setTimeout(resolve, FETCH_INTERVAL));
+  }
 };
 
 const sendTweet = async (rawStatus: string, image?: Buffer) => {
