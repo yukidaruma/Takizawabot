@@ -35,8 +35,6 @@ const bot = async () => {
 
     log("Detected bio update.");
 
-    await writeFile(BIO_FILE, bio);
-
     if (lastBio !== null) {
       const maxTweetLen = 140 - (TWEET_DATE_FORMAT.length + 1); // The last 1 stands for space between timestamp and bio
       const ellipsis = "...";
@@ -56,6 +54,7 @@ const bot = async () => {
       }
     }
 
+    await writeFile(BIO_FILE, bio);
     lastBio = bio;
 
     log("Completed cron job.");
