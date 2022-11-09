@@ -84,14 +84,8 @@ const bot = async () => {
   }
 };
 
-const v1Client = new TwitterApi({
-  accessToken: process.env.V1_ACCESS_TOKEN,
-  accessSecret: process.env.V1_ACCESS_SECRET,
-  appKey: process.env.V1_APP_KEY,
-  appSecret: process.env.V1_APP_SECRET,
-}).v1;
 const fetchUserData = async () => {
-  const user = await v1Client.user({ user_id: TARGET_USER_ID });
+  const user = await client.v1.user({ user_id: TARGET_USER_ID });
   const result: DataType = {
     bio: user.description ?? "",
     banner: user.profile_banner_url,
