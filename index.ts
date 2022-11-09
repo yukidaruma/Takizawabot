@@ -3,7 +3,7 @@ import { TwitterApi } from "twitter-api-v2";
 import { schedule } from "node-cron";
 import { format } from "date-fns";
 
-import { BIO_FILE, TARGET_USER_ID, TWEET_DATE_FORMAT } from "./constants";
+import { DATA_FILE, TARGET_USER_ID, TWEET_DATE_FORMAT } from "./constants";
 
 const client = new TwitterApi({
   accessToken: process.env.ACCESS_TOKEN,
@@ -16,9 +16,23 @@ const log = (...args: any[]) => {
   console.log(new Date(), ...args);
 };
 
-let lastBio: string | null = null;
+type LastDataType = Record<"bio", string | null>;
+let lastData: LastDataType = {
+  bio: null,
+};
 const main = async () => {
-  lastBio = (await readFile(BIO_FILE).catch(() => null))?.toString() ?? null;
+  lastData = await readFile(DATA_FILE)
+    .catch(() => null)
+    .then((content) => {
+      if (content) {
+        try {
+          return JSON.parse(content) as LastDataType;
+        } catch {
+          // no-op
+        }
+      }
+      return { bio: null };
+    });
 
   bot();
   schedule("* * * * *", bot);
@@ -27,15 +41,18 @@ const main = async () => {
 const bot = async () => {
   try {
     log("Fetching bio...");
-    const bio = (await fetchBio()).trim();
-    if (lastBio === bio) {
+    const bio = await fetchBio();
+
+    if (lastData.bio === bio) {
       log("No bio update found. Skipping.");
       return;
     }
 
     log("Detected bio update.");
 
-    if (lastBio !== null) {
+    if (lastData.bio === null) {
+      log("Skipped tweeting bio because no last data was set.");
+    } else {
       const maxTweetLen = 140 - (TWEET_DATE_FORMAT.length + 1); // The last 1 stands for space between timestamp and bio
       const ellipsis = "...";
       let tweet =
@@ -54,8 +71,8 @@ const bot = async () => {
       }
     }
 
-    await writeFile(BIO_FILE, bio);
-    lastBio = bio;
+    lastData.bio = bio;
+    await writeFile(DATA_FILE, JSON.stringify(lastData));
 
     log("Completed cron job.");
   } catch (e) {
