@@ -1,6 +1,6 @@
 {
-  "include": ["**/*.ts"],
-  "files": ["index.d.ts"],
+  "include": ["src/**/*.ts"],
+  "files": ["src/index.d.ts"],
   "compilerOptions": {
     "target": "ES2021",
     "noEmit": true,
