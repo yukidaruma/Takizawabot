@@ -1,8 +1,10 @@
 import { format } from "date-fns";
 import { TWEET_DATE_FORMAT } from "./constants";
 
-export type DataKeyType = "bio" | "banner";
-export type LastDataType = Record<DataKeyType, string | null>;
+export const lastDataKeys = ["bio", "banner", "location", "website"] as const;
+export type DataKeyType = typeof lastDataKeys[number];
+export type DataType = Record<DataKeyType, string | null>;
+export type LastDataType = Partial<DataType>;
 
 export const truncateTweet = (tweet: string): [boolean, string] => {
   let truncated = false;
@@ -16,10 +18,17 @@ export const truncateTweet = (tweet: string): [boolean, string] => {
   return [truncated, tweet];
 };
 
+const names = {
+  banner: "ヘッダー画像",
+  location: "プロフィールの位置情報",
+  website: "プロフィールのウェブサイトURL",
+} as const;
 export const composeTweet = (key: DataKeyType, value: string) => {
   switch (key) {
     case "banner":
-      return `[自動] ヘッダー画像の変更を検知しました。\n${value}`;
+    case "location":
+    case "website":
+      return `${names[key]}の更新を検知しました。\n\n新しい値: ${value}`;
     case "bio":
       return format(new Date(), TWEET_DATE_FORMAT) + "\n" + value;
   }

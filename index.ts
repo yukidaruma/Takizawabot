@@ -3,7 +3,13 @@ import { TwitterApi } from "twitter-api-v2";
 import { schedule } from "node-cron";
 
 import { DATA_FILE, TARGET_USER_ID } from "./constants";
-import { composeTweet, LastDataType, truncateTweet } from "./util";
+import {
+  composeTweet,
+  DataType,
+  lastDataKeys,
+  LastDataType,
+  truncateTweet,
+} from "./util";
 
 const client = new TwitterApi({
   accessToken: process.env.ACCESS_TOKEN,
@@ -38,18 +44,18 @@ const main = async () => {
   schedule("* * * * *", bot);
 };
 
-const sendTweet = async (rawTweet: string) => {
-  log(`Sending a Tweet: ${JSON.stringify(rawTweet)}`);
-  const [truncated, tweet] = truncateTweet(rawTweet);
+const sendTweet = async (rawStatus: string, image?: Buffer) => {
+  log(`Sending a Tweet: ${JSON.stringify(rawStatus)}`);
+  const [truncated, status] = truncateTweet(rawStatus);
   if (truncated) {
-    log(`Tweet was truncated. ${JSON.stringify(tweet)}`);
+    log(`Tweet was truncated. ${JSON.stringify(status)}`);
   }
 
   if (process.env.NO_TWEET) {
     log("Skipped tweeting because process.env.NO_TWEET is set.");
     return false;
   } else {
-    await client.v2.tweet(tweet);
+    await client.v2.tweet(status);
     log("Successfully sent a Tweet.");
     return true;
   }
@@ -60,8 +66,7 @@ const bot = async () => {
     log("Fetching user data...");
     const userData = await fetchUserData();
 
-    const keys: Array<keyof LastDataType> = ["banner", "bio"];
-    for (const key of keys) {
+    for (const key of lastDataKeys) {
       const value = userData[key];
       if (lastData[key] === value) {
         log(`No ${key} update found. Skipping.`);
@@ -70,7 +75,7 @@ const bot = async () => {
 
       if (key in lastData) {
         log(`Detected ${key} update.`);
-        const tweet = composeTweet(key, value);
+        const tweet = composeTweet(key, value ?? "(なし)");
         await sendTweet(tweet);
         log(`Successfully sent a Tweet for ${key} update.`);
       } else {
@@ -95,10 +100,13 @@ const v1Client = new TwitterApi({
 }).v1;
 const fetchUserData = async () => {
   const user = await v1Client.user({ user_id: TARGET_USER_ID });
-  return {
+  const result: DataType = {
     bio: user.description ?? "",
     banner: user.profile_banner_url,
+    location: user.location,
+    website: user.url,
   };
+  return result;
 };
 
 main();
