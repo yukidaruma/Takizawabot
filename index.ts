@@ -66,7 +66,7 @@ const bot = async () => {
 
       if (key in lastData) {
         log(`Detected ${key} update.`);
-        const tweet = composeTweet(key, value ?? "(なし)");
+        const tweet = composeTweet(key, value || "(なし)");
         await sendTweet(tweet);
         log(`Successfully sent a Tweet for ${key} update.`);
       } else {
