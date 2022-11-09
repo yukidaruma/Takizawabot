@@ -1,10 +1,9 @@
 import { readFile, writeFile } from "fs/promises";
 import { TwitterApi } from "twitter-api-v2";
 import { schedule } from "node-cron";
-import { format } from "date-fns";
 
-import { DATA_FILE, TARGET_USER_ID, TWEET_DATE_FORMAT } from "./constants";
-import { truncateTweet } from "./util";
+import { DATA_FILE, TARGET_USER_ID } from "./constants";
+import { composeTweet, LastDataType, truncateTweet } from "./util";
 
 const client = new TwitterApi({
   accessToken: process.env.ACCESS_TOKEN,
@@ -17,9 +16,9 @@ const log = (...args: any[]) => {
   console.log(new Date(), ...args);
 };
 
-type LastDataType = Record<"bio", string | null>;
 let lastData: LastDataType = {
   bio: null,
+  banner: null,
 };
 const main = async () => {
   lastData = await readFile(DATA_FILE)
@@ -27,12 +26,12 @@ const main = async () => {
     .then((content) => {
       if (content) {
         try {
-          return JSON.parse(content) as LastDataType;
+          return JSON.parse(content.toString()) as LastDataType;
         } catch {
           // no-op
         }
       }
-      return { bio: null };
+      return { bio: null, banner: null };
     });
 
   bot();
@@ -58,24 +57,28 @@ const sendTweet = async (rawTweet: string) => {
 
 const bot = async () => {
   try {
-    log("Fetching bio...");
-    const bio = await fetchBio();
+    log("Fetching user data...");
+    const userData = await fetchUserData();
 
-    if (lastData.bio === bio) {
-      log("No bio update found. Skipping.");
-      return;
+    const keys: Array<keyof LastDataType> = ["banner", "bio"];
+    for (const key of keys) {
+      const value = userData[key];
+      if (lastData[key] === value) {
+        log(`No ${key} update found. Skipping.`);
+        continue;
+      }
+
+      if (key in lastData) {
+        log(`Detected ${key} update.`);
+        const tweet = composeTweet(key, value);
+        await sendTweet(tweet);
+        log(`Successfully sent a Tweet for ${key} update.`);
+      } else {
+        log(`Skipped tweeting ${key} because no last data was set.`);
+      }
+
+      lastData[key] = value;
     }
-
-    log("Detected bio update.");
-
-    if (lastData.bio === null) {
-      log("Skipped tweeting bio because no last data was set.");
-    } else {
-      const tweet = format(new Date(), TWEET_DATE_FORMAT) + "\n" + bio;
-      await sendTweet(tweet);
-    }
-
-    lastData.bio = bio;
     await writeFile(DATA_FILE, JSON.stringify(lastData));
 
     log("Completed cron job.");
@@ -84,11 +87,18 @@ const bot = async () => {
   }
 };
 
-const fetchBio = async () => {
-  const user = await client.v2.user(TARGET_USER_ID, {
-    "user.fields": ["description"],
-  });
-  return user.data.description ?? "";
+const v1Client = new TwitterApi({
+  accessToken: process.env.V1_ACCESS_TOKEN,
+  accessSecret: process.env.V1_ACCESS_SECRET,
+  appKey: process.env.V1_APP_KEY,
+  appSecret: process.env.V1_APP_SECRET,
+}).v1;
+const fetchUserData = async () => {
+  const user = await v1Client.user({ user_id: TARGET_USER_ID });
+  return {
+    bio: user.description ?? "",
+    banner: user.profile_banner_url,
+  };
 };
 
 main();
