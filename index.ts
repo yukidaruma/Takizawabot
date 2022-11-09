@@ -21,7 +21,7 @@ const main = async () => {
   lastBio = (await readFile(BIO_FILE).catch(() => null))?.toString() ?? null;
 
   bot();
-  schedule("*/5 * * * *", bot);
+  schedule("* * * * *", bot);
 };
 
 const bot = async () => {
