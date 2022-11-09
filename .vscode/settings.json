@@ -1,7 +1,4 @@
 {
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "files.exclude": {
-    ".env": true
-  }
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 }
