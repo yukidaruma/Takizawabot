@@ -4,6 +4,7 @@ import { schedule } from "node-cron";
 import { format } from "date-fns";
 
 import { DATA_FILE, TARGET_USER_ID, TWEET_DATE_FORMAT } from "./constants";
+import { truncateTweet } from "./util";
 
 const client = new TwitterApi({
   accessToken: process.env.ACCESS_TOKEN,
@@ -38,8 +39,12 @@ const main = async () => {
   schedule("* * * * *", bot);
 };
 
-const sendTweet = async (tweet: string) => {
-  log(`Sending a Tweet: ${JSON.stringify(tweet)}`);
+const sendTweet = async (rawTweet: string) => {
+  log(`Sending a Tweet: ${JSON.stringify(rawTweet)}`);
+  const [truncated, tweet] = truncateTweet(rawTweet);
+  if (truncated) {
+    log(`Tweet was truncated. ${JSON.stringify(tweet)}`);
+  }
 
   if (process.env.NO_TWEET) {
     log("Skipped tweeting because process.env.NO_TWEET is set.");
@@ -66,13 +71,7 @@ const bot = async () => {
     if (lastData.bio === null) {
       log("Skipped tweeting bio because no last data was set.");
     } else {
-      const maxTweetLen = 140 - (TWEET_DATE_FORMAT.length + 1); // The last 1 stands for space between timestamp and bio
-      const ellipsis = "...";
-      let tweet =
-        bio.length > maxTweetLen
-          ? bio.substring(0, maxTweetLen - ellipsis.length) + ellipsis
-          : bio;
-      tweet = format(new Date(), TWEET_DATE_FORMAT) + "\n" + tweet;
+      const tweet = format(new Date(), TWEET_DATE_FORMAT) + "\n" + bio;
       await sendTweet(tweet);
     }
 
