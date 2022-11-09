@@ -18,7 +18,6 @@
   "dependencies": {
     "date-fns": "^2.29.3",
     "dotenv": "^16.0.3",
-    "node-cron": "^3.0.2",
     "twitter-api-v2": "^1.12.9"
   },
   "devDependencies": {

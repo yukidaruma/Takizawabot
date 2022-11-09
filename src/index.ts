@@ -1,6 +1,5 @@
 import { readFile, writeFile } from "fs/promises";
 import { TwitterApi } from "twitter-api-v2";
-import { schedule } from "node-cron";
 
 import { DATA_FILE, FETCH_INTERVAL, TARGET_USER_ID } from "./constants";
 import {
