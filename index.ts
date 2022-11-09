@@ -22,23 +22,14 @@ const log = (...args: any[]) => {
   console.log(new Date(), ...args);
 };
 
-let lastData: LastDataType = {
-  bio: null,
-  banner: null,
-};
+let lastData: LastDataType = {};
 const main = async () => {
-  lastData = await readFile(DATA_FILE)
-    .catch(() => null)
-    .then((content) => {
-      if (content) {
-        try {
-          return JSON.parse(content.toString()) as LastDataType;
-        } catch {
-          // no-op
-        }
-      }
-      return { bio: null, banner: null };
-    });
+  try {
+    const content = await readFile(DATA_FILE);
+    lastData = JSON.parse(content.toString()) as unknown as LastDataType;
+  } catch (e) {
+    log(e);
+  }
 
   bot();
   schedule("* * * * *", bot);
