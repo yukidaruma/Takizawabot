@@ -25,7 +25,8 @@
     "@types/node": "^18.11.9",
     "@types/node-cron": "^3.0.5",
     "esbuild": "^0.15.13",
-    "prettier": "^2.7.1"
+    "prettier": "^2.7.1",
+    "ts-node": "^10.9.1"
   },
   "engines": {
     "node": ">=18"
