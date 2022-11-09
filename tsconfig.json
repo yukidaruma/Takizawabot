@@ -2,7 +2,9 @@
   "include": ["src/**/*.ts"],
   "files": ["src/index.d.ts"],
   "compilerOptions": {
+    "moduleResolution": "Node",
     "target": "ES2021",
+    "types": ["@types/node"],
     "noEmit": true,
     "strict": true
   }
