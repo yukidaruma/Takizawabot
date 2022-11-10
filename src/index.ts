@@ -1,7 +1,12 @@
 import { readFile, writeFile } from "fs/promises";
 import { TwitterApi } from "twitter-api-v2";
 
-import { DATA_FILE, FETCH_INTERVAL, TARGET_USER_ID } from "./constants";
+import {
+  DATA_FILE,
+  FETCH_INTERVAL,
+  FETCH_INTERVAL_AFTER_DETECTION,
+  TARGET_USER_ID,
+} from "./constants";
 import {
   composeTweet,
   DataType,
@@ -31,8 +36,13 @@ const main = async () => {
   }
 
   while (true) {
-    await bot();
-    await new Promise((resolve) => setTimeout(resolve, FETCH_INTERVAL));
+    const detected = await bot();
+    await new Promise((resolve) =>
+      setTimeout(
+        resolve,
+        detected ? FETCH_INTERVAL_AFTER_DETECTION : FETCH_INTERVAL
+      )
+    );
   }
 };
 
@@ -54,6 +64,7 @@ const sendTweet = async (rawStatus: string, image?: Buffer) => {
 };
 
 const bot = async () => {
+  let detected = false;
   try {
     log("Fetching user data...");
     const userData = await fetchUserData();
@@ -66,6 +77,7 @@ const bot = async () => {
       }
 
       if (key in lastData) {
+        detected = true;
         log(`Detected ${key} update.`);
         const tweet = composeTweet(key, value || "(なし)");
         await sendTweet(tweet);
@@ -82,6 +94,8 @@ const bot = async () => {
   } catch (e) {
     log("ERROR", e);
   }
+
+  return detected;
 };
 
 const v1Client = new TwitterApi({
